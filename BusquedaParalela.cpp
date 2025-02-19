@@ -9,13 +9,13 @@
 
 using namespace std;
 
-// --- Generación de nombres masivos ---
+
 vector<string> generarNombres(int cantidad) {
     vector<string> nombres_base = {
         "Ana", "Carlos", "Beatriz", "Daniel", "Elena", "Fernando", "Gabriela", "Hugo",
-        "Isabel", "Javier", "Karla", "Luis", "María", "Nicolás", "Olga", "Pablo",
-        "Quintín", "Raquel", "Santiago", "Teresa", "Ulises", "Valeria", "Wilfredo",
-        "Ximena", "Yolanda", "Zacarías"
+        "Isabel", "Javier", "Karla", "Luis", "MarÃ­a", "NicolÃ¡s", "Olga", "Pablo",
+        "QuintÃ­n", "Raquel", "Santiago", "Teresa", "Ulises", "Valeria", "Wilfredo",
+        "Ximena", "Yolanda", "ZacarÃ­as"
     };
 
     vector<string> nombres;
@@ -28,9 +28,9 @@ vector<string> generarNombres(int cantidad) {
     return nombres;
 }
 
-// --- Variables globales ---
-vector<string> nombres = generarNombres(1000);  // ?? Ahora son 100,000 nombres
-string nombre_buscado = "Pablo50000"; // Un nombre que sí existe en la lista
+
+vector<string> nombres = generarNombres(1000);  
+string nombre_buscado = "Pablo50000"; 
 const int NUM_HILOS = 8;
 
 mutex mtx;
@@ -38,13 +38,13 @@ atomic<bool> encontrado(false);
 condition_variable cv;
 int hilos_terminados = 0;
 
-// --- Función de búsqueda en paralelo ---
+// --- FunciÃ³n de bÃºsqueda en paralelo ---
 void buscar(int id, vector<string> sublista) {
     cout << "Hilo " << id << " buscando en su segmento." << endl;
 
     for (const auto& nombre : sublista) {
         if (encontrado.load()) {
-            cout << "Hilo " << id << " se detiene (otro hilo lo encontró)." << endl;
+            cout << "Hilo " << id << " se detiene (otro hilo lo encontrÃ³)." << endl;
             return;
         }
 
@@ -52,14 +52,14 @@ void buscar(int id, vector<string> sublista) {
 
         if (nombre == nombre_buscado) {
             lock_guard<mutex> lock(mtx);
-            cout << "?? Hilo " << id << " encontró el nombre '" << nombre << "' ??" << endl;
+            cout << "?? Hilo " << id << " encontrÃ³ el nombre '" << nombre << "' ??" << endl;
             encontrado.store(true);
             cv.notify_all();
             return;
         }
     }
 
-    cout << "Hilo " << id << " terminó su búsqueda." << endl;
+    cout << "Hilo " << id << " terminÃ³ su bÃºsqueda." << endl;
 
     {
         lock_guard<mutex> lock(mtx);
@@ -70,9 +70,9 @@ void buscar(int id, vector<string> sublista) {
     }
 }
 
-// --- Supervisor asíncrono ---
+
 void supervisor() {
-    for (int i = 0; i < 10; ++i) {  // Más tiempo de monitoreo
+    for (int i = 0; i < 10; ++i) {  // MÃ¡s tiempo de monitoreo
         if (encontrado.load()) break;
         cout << "[Supervisor] Seguimos buscando...\n";
         this_thread::sleep_for(chrono::seconds(1));
@@ -87,33 +87,26 @@ int main() {
         segmentos[i % NUM_HILOS].push_back(nombres[i]);
     }
 
-    // Crear e iniciar los hilos
     vector<thread> hilos;
     for (int i = 0; i < NUM_HILOS; i++) {
         hilos.emplace_back(buscar, i, segmentos[i]);
     }
 
-    // Iniciar supervisor asíncrono
     thread supervisor_thread(supervisor);
 
-    // Esperar a que todos los hilos terminen
     for (auto& hilo : hilos) {
         hilo.join();
     }
 
-    // Esperar a que el supervisor termine
     supervisor_thread.join();
 
-    // Mostrar resultado final
     if (encontrado.load()) {
         cout << "\n? El nombre '" << nombre_buscado << "' fue encontrado." << endl;
     } else {
-        cout << "\n? No se encontró el nombre." << endl;
+        cout << "\n? No se encontrÃ³ el nombre." << endl;
     }
+    cout << "?? BÃºsqueda terminada." << endl;
 
-    cout << "?? Búsqueda terminada." << endl;
-
-    // Mantener consola abierta
     cout << "\nPresiona ENTER para salir...";
     cin.ignore();
     cin.get();
